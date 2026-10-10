@@ -1,0 +1,14 @@
+services:
+  api:
+    build: .
+    container_name: research-assistant
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      DATA_DIR: /app/data
+    volumes:
+      # persists SQLite memory, Chroma vectors and uploaded files across restarts
+      - ./data:/app/data
+    restart: unless-stopped

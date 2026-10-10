@@ -1,0 +1,22 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic>=2.7
+pydantic-settings>=2.3
+python-dotenv>=1.0
+python-multipart>=0.0.9
+
+langgraph>=0.2.60
+langgraph-checkpoint-sqlite>=2.0
+aiosqlite>=0.20
+langchain>=0.3
+langchain-core>=0.3
+langchain-openai>=0.2
+langchain-chroma>=0.1.4
+langchain-text-splitters>=0.3
+chromadb>=0.5
+pypdf>=4.0
+
+tavily-python>=0.5
+ddgs>=9.0
+# Optional other LLM providers:
+# langchain-anthropic

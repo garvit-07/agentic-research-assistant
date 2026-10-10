@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 420" font-family="system-ui,Segoe UI,sans-serif">
+  <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#14212b"/></marker></defs>
+  <rect width="1000" height="420" fill="#f3f5f7"/>
+  <text x="30" y="34" font-size="20" font-weight="600" font-family="Georgia,serif" fill="#14212b">System architecture</text>
+
+  <rect x="30" y="150" width="150" height="120" rx="10" fill="#fff" stroke="#d9e0e6"/>
+  <text x="105" y="190" font-size="15" font-weight="600" text-anchor="middle" fill="#14212b">Client</text>
+  <text x="105" y="212" font-size="12" text-anchor="middle" fill="#5c6b78">Built-in web UI</text>
+  <text x="105" y="230" font-size="12" text-anchor="middle" fill="#5c6b78">curl / Python / JS</text>
+
+  <rect x="205" y="48" width="765" height="350" rx="14" fill="none" stroke="#0f766e" stroke-width="2" stroke-dasharray="8 5"/>
+  <text x="222" y="70" font-size="12" fill="#0f766e">Docker container (docker compose, ./data volume)</text>
+
+  <rect x="230" y="90" width="190" height="290" rx="10" fill="#fff" stroke="#14212b" stroke-width="1.5"/>
+  <text x="325" y="120" font-size="15" font-weight="600" text-anchor="middle" fill="#14212b">FastAPI (async)</text>
+  <g font-size="12" fill="#5c6b78" text-anchor="middle">
+    <text x="325" y="152">POST /api/v1/chat/stream (SSE)</text><text x="325" y="176">POST /api/v1/chat</text>
+    <text x="325" y="200">GET/DELETE /api/v1/threads/{id}</text><text x="325" y="224">POST /api/v1/documents</text>
+    <text x="325" y="248">GET /health · /ready</text><text x="325" y="290">API-key auth · CORS</text>
+    <text x="325" y="312">Pydantic validation</text><text x="325" y="334">lifespan-managed resources</text>
+  </g>
+
+  <rect x="460" y="90" width="210" height="130" rx="10" fill="#d8f0ed" stroke="#0f766e" stroke-width="1.5"/>
+  <text x="565" y="118" font-size="15" font-weight="600" text-anchor="middle" fill="#14212b">LangGraph agent</text>
+  <text x="565" y="148" font-size="12" text-anchor="middle" fill="#14212b">planner → researcher</text>
+  <text x="565" y="168" font-size="12" text-anchor="middle" fill="#14212b">→ writer → reviewer</text>
+  <text x="565" y="196" font-size="12" text-anchor="middle" fill="#5c6b78">conditional edges + revision loop</text>
+
+  <rect x="460" y="250" width="210" height="130" rx="10" fill="#fff" stroke="#14212b" stroke-width="1.5"/>
+  <text x="565" y="278" font-size="15" font-weight="600" text-anchor="middle" fill="#14212b">Tools</text>
+  <text x="565" y="312" font-size="12" text-anchor="middle" fill="#5c6b78">web_search (Tavily / DDG)</text>
+  <text x="565" y="334" font-size="12" text-anchor="middle" fill="#5c6b78">search_documents (RAG)</text>
+  <text x="565" y="360" font-size="12" text-anchor="middle" fill="#5c6b78">errors returned to the agent</text>
+
+  <g font-size="14" font-weight="600" text-anchor="middle" fill="#14212b">
+    <rect x="730" y="90" width="220" height="80" rx="10" fill="#fff" stroke="#d9e0e6"/><text x="840" y="125">LLM provider</text><text x="840" y="146" font-size="12" font-weight="400" fill="#5c6b78">OpenAI / Anthropic / …</text>
+    <rect x="730" y="190" width="220" height="80" rx="10" fill="#fff" stroke="#d9e0e6"/><text x="840" y="225">SQLite checkpoints</text><text x="840" y="246" font-size="12" font-weight="400" fill="#5c6b78">conversation memory</text>
+    <rect x="730" y="290" width="220" height="80" rx="10" fill="#fff" stroke="#d9e0e6"/><text x="840" y="325">ChromaDB</text><text x="840" y="346" font-size="12" font-weight="400" fill="#5c6b78">document embeddings</text>
+  </g>
+
+  <g stroke="#14212b" stroke-width="2" fill="none" marker-end="url(#a)">
+    <path d="M180 210H228"/><path d="M420 150H458"/><path d="M670 130H728"/><path d="M670 200H728"/>
+    <path d="M565 222V248"/><path d="M670 330H728"/>
+  </g>
+  <text x="204" y="200" font-size="11" fill="#5c6b78" text-anchor="middle">SSE</text>
+</svg>

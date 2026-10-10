@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Research Assistant</title>
+<style>
+  :root{
+    --paper:#f3f5f7; --panel:#ffffff; --ink:#14212b; --muted:#5c6b78; --line:#d9e0e6;
+    --accent:#0f766e; --accent-soft:#d8f0ed; --warn:#b45309; --bad:#b91c1c;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;height:100vh;display:grid;grid-template-columns:240px 1fr 320px;
+    background:var(--paper);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+  aside,main,section.trace{min-height:0;display:flex;flex-direction:column}
+  aside{background:var(--panel);border-right:1px solid var(--line);padding:20px;gap:14px}
+  section.trace{background:var(--panel);border-left:1px solid var(--line);padding:20px;overflow:auto}
+  h1{font:600 17px/1.2 Georgia,serif;margin:0 0 4px}
+  h2{font:600 13px/1.2 system-ui;margin:0 0 10px;color:var(--muted)}
+  small,.muted{color:var(--muted);font-size:12.5px}
+  button,input{font:inherit}
+  button{border:1px solid var(--line);background:var(--panel);padding:8px 12px;border-radius:6px;cursor:pointer;color:var(--ink)}
+  button:hover{border-color:var(--accent)}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button:disabled{opacity:.55;cursor:default}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  input[type=text],input[type=password]{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:#fff}
+  #log{flex:1;overflow:auto;padding:28px 8% 12px}
+  .msg{margin:0 0 22px;max-width:760px}
+  .msg.user{margin-left:auto;background:var(--accent-soft);padding:10px 14px;border-radius:10px;width:fit-content}
+  .msg.bot{font-family:Georgia,"Times New Roman",serif;font-size:16.5px;line-height:1.65}
+  .msg.bot code{background:#e9eef2;padding:1px 5px;border-radius:4px;font:13.5px ui-monospace,monospace}
+  .msg.bot h3,.msg.bot h4{font-family:system-ui;margin:18px 0 6px}
+  .sources{margin-top:10px;font:13px system-ui;color:var(--muted)}
+  .sources a{color:var(--accent);word-break:break-all}
+  form{display:flex;gap:10px;padding:14px 8% 22px}
+  form input{flex:1;padding:12px 14px;font-size:15px}
+  .empty{color:var(--muted);margin:12vh auto 0;max-width:420px;text-align:center}
+  .step{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+  .dot{flex:none;width:10px;height:10px;border-radius:50%;margin-top:6px;background:var(--line)}
+  .step.run .dot{background:var(--warn)} .step.ok .dot{background:var(--accent)} .step.bad .dot{background:var(--bad)}
+  .step .detail{color:var(--muted);font-size:12.5px;word-break:break-word}
+  @media(max-width:1000px){body{grid-template-columns:1fr}aside,section.trace{display:none}}
+  @media(prefers-reduced-motion:no-preference){.step.run .dot{animation:p 1s infinite alternate}@keyframes p{to{opacity:.3}}}
+</style>
+</head>
+<body>
+<aside>
+  <div><h1>Research Assistant</h1><small>Plans, searches, writes, then checks its own answer.</small></div>
+  <button id="new">New conversation</button>
+  <div><h2>Add a document</h2><input id="file" type="file" accept=".pdf,.md,.txt"><small id="upmsg"></small></div>
+  <div><h2>API key (optional)</h2><input id="key" type="password" autocomplete="off"></div>
+  <small class="muted" id="tid"></small>
+</aside>
+
+<main>
+  <div id="log"><div class="empty" id="empty">Ask a research question. Upload a PDF first if you want answers grounded in your own files.</div></div>
+  <form id="form"><input id="q" type="text" placeholder="Compare RAG and fine-tuning for a support chatbot" autocomplete="off" required>
+    <button class="primary" id="send">Ask</button></form>
+</main>
+
+<section class="trace"><h2>Agent activity</h2><div id="trace"></div></section>
+
+<script>
+const $=id=>document.getElementById(id);
+let threadId=localStorage.getItem('thread_id')||'';
+const showTid=()=>$('tid').textContent=threadId?('Conversation '+threadId.slice(0,8)):'';
+showTid();
+
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function md(s){ // tiny, safe markdown: escape first, then format
+  return esc(s).replace(/^### (.*)$/gm,'<h4>$1</h4>').replace(/^## (.*)$/gm,'<h3>$1</h3>')
+   .replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/`([^`]+)`/g,'<code>$1</code>')
+   .replace(/^[-*] (.*)$/gm,'• $1').replace(/\n/g,'<br>');
+}
+const headers=()=>{const h={'Content-Type':'application/json'};if($('key').value)h['X-API-Key']=$('key').value;return h};
+
+function addMsg(cls,html){$('empty')?.remove();const d=document.createElement('div');d.className='msg '+cls;d.innerHTML=html;$('log').appendChild(d);$('log').scrollTop=1e9;return d}
+function step(label,detail,state='run'){const d=document.createElement('div');d.className='step '+state;
+  d.innerHTML='<span class="dot"></span><div><div>'+esc(label)+'</div><div class="detail">'+esc(detail||'')+'</div></div>';
+  $('trace').appendChild(d);return d}
+const setState=(el,s,detail)=>{el.className='step '+s;if(detail!==undefined)el.querySelector('.detail').textContent=detail};
+
+$('new').onclick=()=>{threadId='';localStorage.removeItem('thread_id');showTid();$('log').innerHTML='';$('trace').innerHTML=''};
+
+$('file').onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;const fd=new FormData();fd.append('file',f);
+  $('upmsg').textContent='Indexing…';
+  const h={};if($('key').value)h['X-API-Key']=$('key').value;
+  const r=await fetch('/api/v1/documents',{method:'POST',body:fd,headers:h});
+  const j=await r.json();$('upmsg').textContent=r.ok?`${j.filename}: ${j.chunks} chunks indexed`:(j.detail||'Upload failed');
+};
+
+$('form').onsubmit=async e=>{
+  e.preventDefault();const q=$('q').value.trim();if(!q)return;$('q').value='';$('send').disabled=true;
+  $('trace').innerHTML='';addMsg('user',esc(q));
+  let bot=null,raw='',cur=null,drafts=0;
+  try{
+    const res=await fetch('/api/v1/chat/stream',{method:'POST',headers:headers(),body:JSON.stringify({message:q,thread_id:threadId||null})});
+    if(!res.ok)throw new Error((await res.json()).detail||res.statusText);
+    const reader=res.body.getReader(),dec=new TextDecoder();let buf='';
+    while(true){
+      const {value,done}=await reader.read();if(done)break;buf+=dec.decode(value,{stream:true});
+      let i;while((i=buf.indexOf('\n\n'))>=0){const block=buf.slice(0,i);buf=buf.slice(i+2);
+        const ev=/event: (.*)/.exec(block)?.[1],data=JSON.parse(/data: (.*)/s.exec(block)?.[1]||'{}');
+        if(ev==='start'){threadId=data.thread_id;localStorage.setItem('thread_id',threadId);showTid()}
+        else if(ev==='node_start'){ if(cur)setState(cur,'ok');
+          if(data.node==='writer'){drafts++;raw='';bot=bot||addMsg('bot','');bot.innerHTML='';cur=step(drafts>1?'Revising the answer':'Writing the answer','')}
+          else if(data.node==='planner')cur=step('Planning','');
+          else if(data.node==='researcher')cur=step('Researching','');
+          else if(data.node==='reviewer')cur=step('Checking its own answer','');
+          else cur=null;}
+        else if(ev==='plan'){setState(cur,'ok',data.steps.length?data.steps.map((s,n)=>(n+1)+'. '+s).join('\n'):'No research needed')}
+        else if(ev==='tool_start'){step('Tool: '+data.tool,JSON.stringify(data.input),'ok')}
+        else if(ev==='token'){raw+=data.text;bot.innerHTML=md(raw);$('log').scrollTop=1e9}
+        else if(ev==='review'){const ok=data.approved;setState(cur,ok?'ok':'bad',`Score ${data.score}/10 — ${ok?'approved':'sent back for revision'}`+(data.issues.length?'\n'+data.issues.join('\n'):''));cur=null}
+        else if(ev==='final'){ if(cur)setState(cur,'ok');
+          bot.innerHTML=md(data.answer);
+          if(data.sources.length)bot.insertAdjacentHTML('beforeend','<div class="sources">Sources: '+data.sources.map(s=>/^https?:/.test(s)?`<a href="${esc(s)}" target="_blank" rel="noopener">${esc(s)}</a>`:esc(s)).join(' · ')+'</div>')}
+        else if(ev==='error'){addMsg('bot','Something went wrong: '+esc(data.message))}
+      }
+    }
+  }catch(err){addMsg('bot','Request failed: '+esc(err.message))}
+  $('send').disabled=false;$('q').focus();
+};
+</script>
+</body>
+</html>

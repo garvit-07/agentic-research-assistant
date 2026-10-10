@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 470" font-family="system-ui,Segoe UI,sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#14212b"/></marker>
+    <marker id="r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#b45309"/></marker>
+  </defs>
+  <rect width="1000" height="470" fill="#f3f5f7"/>
+  <text x="30" y="38" font-size="20" font-weight="600" font-family="Georgia,serif" fill="#14212b">LangGraph agent workflow</text>
+  <text x="30" y="58" font-size="13" fill="#5c6b78">One user turn. State is checkpointed to SQLite after every node.</text>
+
+  <circle cx="36" cy="192" r="16" fill="#14212b"/><text x="36" y="196" font-size="10" fill="#fff" text-anchor="middle">START</text>
+  <g font-size="15" font-weight="600" text-anchor="middle">
+    <rect x="70" y="160" width="120" height="64" rx="10" fill="#fff" stroke="#0f766e" stroke-width="2"/><text x="130" y="188" fill="#14212b">Planner</text><text x="130" y="206" font-size="11" font-weight="400" fill="#5c6b78">splits into steps</text>
+    <rect x="240" y="160" width="120" height="64" rx="10" fill="#fff" stroke="#0f766e" stroke-width="2"/><text x="300" y="188" fill="#14212b">Researcher</text><text x="300" y="206" font-size="11" font-weight="400" fill="#5c6b78">tool-calling loop</text>
+    <rect x="410" y="160" width="120" height="64" rx="10" fill="#fff" stroke="#0f766e" stroke-width="2"/><text x="470" y="188" fill="#14212b">Writer</text><text x="470" y="206" font-size="11" font-weight="400" fill="#5c6b78">streams the draft</text>
+    <rect x="580" y="160" width="120" height="64" rx="10" fill="#fff" stroke="#0f766e" stroke-width="2"/><text x="640" y="188" fill="#14212b">Reviewer</text><text x="640" y="206" font-size="11" font-weight="400" fill="#5c6b78">scores the draft</text>
+    <rect x="750" y="160" width="120" height="64" rx="10" fill="#0f766e"/><text x="810" y="188" fill="#fff">Finalize</text><text x="810" y="206" font-size="11" font-weight="400" fill="#d8f0ed">saves to memory</text>
+  </g>
+  <circle cx="930" cy="192" r="16" fill="#14212b"/><text x="930" y="196" font-size="10" fill="#fff" text-anchor="middle">END</text>
+  <g stroke="#14212b" stroke-width="2" fill="none" marker-end="url(#a)">
+    <path d="M52 192H68"/><path d="M190 192H238"/><path d="M360 192H408"/><path d="M530 192H578"/><path d="M700 192H748"/><path d="M870 192H912"/>
+  </g>
+  <text x="725" y="150" font-size="12" fill="#0f766e" text-anchor="middle">approved or budget used</text>
+
+  <!-- skip research -->
+  <path d="M130 160V96H470V158" fill="none" stroke="#5c6b78" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#a)"/>
+  <text x="300" y="88" font-size="12" fill="#5c6b78" text-anchor="middle">no research needed</text>
+  <!-- researcher loop -->
+  <path d="M276 160C268 118 332 118 324 158" fill="none" stroke="#14212b" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="300" y="124" font-size="12" fill="#14212b" text-anchor="middle">next plan step</text>
+  <!-- revise loop -->
+  <path d="M620 224V290H490V226" fill="none" stroke="#b45309" stroke-width="2" marker-end="url(#r)"/>
+  <text x="555" y="312" font-size="12" fill="#b45309" text-anchor="middle">rejected: revise with feedback (max 2 times)</text>
+
+  <!-- tools -->
+  <g stroke="#5c6b78" stroke-dasharray="4 3" fill="none"><path d="M280 224L245 330"/><path d="M320 224L355 330"/></g>
+  <g font-size="13" text-anchor="middle">
+    <rect x="185" y="330" width="120" height="46" rx="8" fill="#d8f0ed" stroke="#0f766e"/><text x="245" y="357" fill="#14212b">web_search</text>
+    <rect x="315" y="330" width="120" height="46" rx="8" fill="#d8f0ed" stroke="#0f766e"/><text x="375" y="357" fill="#14212b">search_documents</text>
+  </g>
+  <text x="310" y="398" font-size="11" fill="#5c6b78" text-anchor="middle">Tavily / DuckDuckGo · Chroma vector store</text>
+
+  <rect x="70" y="425" width="860" height="30" rx="8" fill="#fff" stroke="#d9e0e6"/>
+  <text x="500" y="445" font-size="13" fill="#14212b" text-anchor="middle">AsyncSqliteSaver checkpointer: persistent memory per thread_id, survives restarts</text>
+</svg>
