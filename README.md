@@ -10,7 +10,6 @@ A multi-step **LangGraph** agent that **plans** a task, **calls tools** (web sea
 
 ![UI preview](docs/images/ui-preview.svg)
 
-> The image above is a design preview. After your first run, replace it with a real screenshot saved as `docs/images/ui-screenshot.png`.
 
 ## Features
 
